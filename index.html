@@ -38,6 +38,7 @@ body {
     0 0 25px rgba(255,77,109,0.35),
     inset 0 0 0 1px rgba(255,255,255,0.2);
   z-index: 10;
+  pointer-events: none; /* IMPORTANT: never block buttons */
 }
 
 h1 {
@@ -51,11 +52,11 @@ p {
   min-height: 52px;
 }
 
-/* FULL-SCREEN PLAYGROUND */
+/* FULL-SCREEN BUTTON AREA */
 .playground {
   position: fixed;
   inset: 0;
-  z-index: 5;
+  z-index: 20; /* ABOVE card */
 }
 
 /* BUTTONS */
@@ -68,6 +69,7 @@ button {
   font-size: 16px;
   cursor: pointer;
   transition: left 0.35s ease, top 0.35s ease;
+  z-index: 30; /* ALWAYS ON TOP */
 }
 
 #yes {
@@ -85,6 +87,7 @@ button {
   position: fixed;
   pointer-events: none;
   animation: floatUp linear forwards;
+  z-index: 1;
 }
 
 @keyframes floatUp {
@@ -105,7 +108,6 @@ button {
   <p id="question">Will you be my Valentine?</p>
 </div>
 
-<!-- BUTTON PLAYGROUND -->
 <div class="playground" id="playground">
   <button id="yes">Yes ❤️</button>
   <button id="no">No 🙈</button>
@@ -115,7 +117,6 @@ button {
 const yesBtn = document.getElementById("yes");
 const noBtn = document.getElementById("no");
 const question = document.getElementById("question");
-const playground = document.getElementById("playground");
 const music = document.getElementById("bgMusic");
 
 /* Start music safely */
@@ -147,20 +148,17 @@ const noTease = [
   "Beshram 😭"
 ];
 
-/* SAFE RANDOM POSITION (FULL SCREEN, NO OVERLAP) */
+/* SAFE RANDOM POSITION (NO OVERLAP, FULL SCREEN) */
 function moveButton(btn, otherBtn) {
   const padding = 20;
   const btnW = btn.offsetWidth;
   const btnH = btn.offsetHeight;
 
-  const maxX = window.innerWidth - btnW - padding;
-  const maxY = window.innerHeight - btnH - padding;
-
   let x, y, safe;
 
   do {
-    x = Math.random() * maxX + padding;
-    y = Math.random() * maxY + padding;
+    x = Math.random() * (window.innerWidth - btnW - padding * 2) + padding;
+    y = Math.random() * (window.innerHeight - btnH - padding * 2) + padding;
 
     const dx = x - otherBtn.offsetLeft;
     const dy = y - otherBtn.offsetTop;
@@ -175,14 +173,14 @@ function moveButton(btn, otherBtn) {
 
 /* INITIAL PERFECT ALIGNMENT */
 function centerButtons() {
-  const centerX = window.innerWidth / 2;
-  const centerY = window.innerHeight / 2 + 140;
+  const cx = window.innerWidth / 2;
+  const cy = window.innerHeight / 2 + 140;
 
-  yesBtn.style.left = (centerX - 140) + "px";
-  yesBtn.style.top = centerY + "px";
+  yesBtn.style.left = (cx - 140) + "px";
+  yesBtn.style.top = cy + "px";
 
-  noBtn.style.left = (centerX + 20) + "px";
-  noBtn.style.top = centerY + "px";
+  noBtn.style.left = (cx + 20) + "px";
+  noBtn.style.top = cy + "px";
 }
 
 centerButtons();
