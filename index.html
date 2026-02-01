@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Be My Valentine 💕</title>
+<title>Be My Valentine ❤️</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 
@@ -17,18 +17,19 @@ body {
   margin: 0;
   height: 100vh;
   background: radial-gradient(circle at top, #1b1f3b, #090a15);
-  display: flex;
-  justify-content: center;
-  align-items: center;
   overflow: hidden;
   color: white;
 }
 
-/* Card */
+/* CENTER CARD */
 .card {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: 90%;
   max-width: 380px;
-  padding: 34px 26px 38px;
+  padding: 32px 24px;
   border-radius: 26px;
   text-align: center;
   backdrop-filter: blur(18px);
@@ -36,37 +37,37 @@ body {
   box-shadow:
     0 0 25px rgba(255,77,109,0.35),
     inset 0 0 0 1px rgba(255,255,255,0.2);
+  z-index: 10;
 }
 
 h1 {
   color: #ff6b8b;
-  font-size: 28px;
-  margin-bottom: 12px;
+  font-size: 26px;
+  margin-bottom: 10px;
 }
 
 p {
   font-size: 18px;
-  margin-bottom: 26px;
-  min-height: 26px;
+  min-height: 52px;
 }
 
-/* Pill buttons */
-.pill {
-  background: rgba(255,255,255,0.15);
-  border-radius: 40px;
-  padding: 6px;
-  display: flex;
-  gap: 6px;
+/* FULL-SCREEN PLAYGROUND */
+.playground {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
 }
 
+/* BUTTONS */
 button {
-  flex: 1;
-  padding: 14px 0;
+  position: absolute;
+  width: 120px;
+  height: 48px;
   border-radius: 30px;
   border: none;
   font-size: 16px;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: left 0.35s ease, top 0.35s ease;
 }
 
 #yes {
@@ -75,13 +76,13 @@ button {
 }
 
 #no {
-  background: transparent;
+  background: rgba(255,255,255,0.22);
   color: white;
 }
 
-/* Floating hearts & sparkles */
+/* FLOATING DECOR */
 .float {
-  position: absolute;
+  position: fixed;
   pointer-events: none;
   animation: floatUp linear forwards;
 }
@@ -90,112 +91,156 @@ button {
   from { transform: translateY(0); opacity: 1; }
   to { transform: translateY(-600px); opacity: 0; }
 }
-
-/* Final screen glow */
-.final {
-  animation: glow 2.5s ease-in-out infinite alternate;
-}
-
-@keyframes glow {
-  from {
-    box-shadow: 0 0 25px rgba(255,143,163,0.4);
-  }
-  to {
-    box-shadow: 0 0 45px rgba(255,143,163,0.9);
-  }
-}
 </style>
 </head>
 
 <body>
 
 <audio id="bgMusic" loop>
-  <source src="https://cdn.pixabay.com/audio/2022/03/15/audio_7c8c6a9b7b.mp3">
+  <source src="https://cdn.pixabay.com/audio/2022/10/25/audio_5e2b2a9bda.mp3">
 </audio>
 
 <div class="card">
   <h1>Navyaa 💕</h1>
   <p id="question">Will you be my Valentine?</p>
+</div>
 
-  <div class="pill">
-    <button id="yes">Yes ❤️</button>
-    <button id="no">No 🙈</button>
-  </div>
+<!-- BUTTON PLAYGROUND -->
+<div class="playground" id="playground">
+  <button id="yes">Yes ❤️</button>
+  <button id="no">No 🙈</button>
 </div>
 
 <script>
 const yesBtn = document.getElementById("yes");
 const noBtn = document.getElementById("no");
 const question = document.getElementById("question");
+const playground = document.getElementById("playground");
 const music = document.getElementById("bgMusic");
 
-let yesStep = 0;
+/* Start music safely */
+document.addEventListener("click", () => {
+  music.volume = 0.4;
+  music.play();
+}, { once: true });
 
-const steps = [
+let yesCount = 0;
+let noCount = 0;
+
+/* TEXTS */
+const yesTease = [
+  "Sooch lo 🤨",
+  "Mujhse pyaar karti ho tabhi click karna 😌",
+  "Accha… karti ho kya Navuu? 👀",
+  "Itna desperate ho rahi hai ladki YES bolne ke liye 😂"
+];
+
+const yesConfirm = [
   "Are you REALLY sure? 🤨",
   "100% sure? 😏",
   "Last chance 👀"
 ];
 
-// Music (mobile-safe)
-document.addEventListener("touchstart", startMusic, { once: true });
-document.addEventListener("click", startMusic, { once: true });
+const noTease = [
+  "Dhokha hua hai 💔 seedha NO pe click kar rahi",
+  "Phir kar rahi hai… 😑",
+  "Beshram 😭"
+];
 
-function startMusic() {
-  music.volume = 0.4;
-  music.play();
+/* SAFE RANDOM POSITION (FULL SCREEN, NO OVERLAP) */
+function moveButton(btn, otherBtn) {
+  const padding = 20;
+  const btnW = btn.offsetWidth;
+  const btnH = btn.offsetHeight;
+
+  const maxX = window.innerWidth - btnW - padding;
+  const maxY = window.innerHeight - btnH - padding;
+
+  let x, y, safe;
+
+  do {
+    x = Math.random() * maxX + padding;
+    y = Math.random() * maxY + padding;
+
+    const dx = x - otherBtn.offsetLeft;
+    const dy = y - otherBtn.offsetTop;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    safe = distance > 160;
+  } while (!safe);
+
+  btn.style.left = x + "px";
+  btn.style.top = y + "px";
 }
 
-// YES button – stable
-yesBtn.addEventListener("click", () => {
-  if (yesStep < steps.length) {
-    question.innerText = steps[yesStep];
-    yesBtn.style.transform = yesStep % 2 ? "scale(0.95)" : "scale(1.05)";
-    yesStep++;
-  } else {
-    document.body.innerHTML = `
-      <div class="final" style="
-        height:100vh;
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        flex-direction:column;
-        background:radial-gradient(circle at top,#1b1f3b,#090a15);
-        color:white;
-        font-family:Poppins;
-        text-align:center;
-        border-radius:24px;
-        padding:30px;
-      ">
-        <h1 style="color:#ff8fa3;font-size:42px;">She said YES 😭❤️</h1>
-        <p style="font-size:20px;">Navyaa is officially my Valentine ✨</p>
-      </div>
-    `;
+/* INITIAL PERFECT ALIGNMENT */
+function centerButtons() {
+  const centerX = window.innerWidth / 2;
+  const centerY = window.innerHeight / 2 + 140;
 
-    // Gentle confetti (safe)
-    setInterval(() => {
-      const el = document.createElement("div");
-      el.className = "float";
-      el.innerText = Math.random() > 0.5 ? "🎉" : "❤";
-      el.style.left = Math.random() * window.innerWidth + "px";
-      el.style.bottom = "-20px";
-      el.style.fontSize = Math.random() * 12 + 16 + "px";
-      el.style.animationDuration = Math.random() * 3 + 4 + "s";
-      document.body.appendChild(el);
-      setTimeout(() => el.remove(), 7000);
-    }, 350);
+  yesBtn.style.left = (centerX - 140) + "px";
+  yesBtn.style.top = centerY + "px";
+
+  noBtn.style.left = (centerX + 20) + "px";
+  noBtn.style.top = centerY + "px";
+}
+
+centerButtons();
+window.addEventListener("resize", centerButtons);
+
+/* NO BUTTON */
+noBtn.addEventListener("click", () => {
+  moveButton(noBtn, yesBtn);
+  if (noCount < noTease.length) {
+    question.innerText = noTease[noCount];
+    noCount++;
   }
 });
 
-// NO button – always runs
-noBtn.addEventListener("click", () => {
-  const pill = document.querySelector(".pill");
-  const maxX = pill.clientWidth - noBtn.offsetWidth;
-  const x = Math.random() * maxX;
-  noBtn.style.transform = `translateX(${x}px)`;
+/* YES BUTTON */
+yesBtn.addEventListener("click", () => {
+
+  if (yesCount < yesTease.length) {
+    moveButton(yesBtn, noBtn);
+    question.innerText = yesTease[yesCount];
+    yesCount++;
+    return;
+  }
+
+  const confirmIndex = yesCount - yesTease.length;
+  if (confirmIndex < yesConfirm.length) {
+    moveButton(yesBtn, noBtn);
+    question.innerText = yesConfirm[confirmIndex];
+    yesCount++;
+    return;
+  }
+
+  /* FINAL SCREEN */
+  document.body.innerHTML = `
+    <div style="
+      height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      flex-direction:column;
+      background:radial-gradient(circle at top,#1b1f3b,#090a15);
+      color:white;
+      font-family:Poppins;
+      text-align:center;
+      padding:20px;
+    ">
+      <h1 style="color:#ff8fa3;font-size:40px;">She said YES 😭❤️</h1>
+      <p style="font-size:22px;margin-top:8px;">
+        Ese hi puchna tha kya darling 😌💖
+      </p>
+      <p style="font-size:18px;margin-top:6px;">
+        Navyaa is officially my Valentine ✨
+      </p>
+    </div>
+  `;
 });
 
-// Ambient hearts during normal screen
+/* FLOATING HEARTS */
 setInterval(() => {
   const el = document.createElement("div");
   el.className = "float";
